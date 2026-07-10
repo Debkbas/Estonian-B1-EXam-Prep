@@ -103,7 +103,19 @@ jobs:
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --release # debug-signed by default; installable
+      - name: Build APK (captured)
+        run: |
+          set -o pipefail
+          flutter build apk --release 2>&1 | tee android-build.log
+      - name: Publish build log
+        if: always()
+        run: |
+          mkdir -p /tmp/blog && cp android-build.log /tmp/blog/android.log 2>/dev/null || echo "no log" > /tmp/blog/android.log
+          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA} outcome=${{ job.status }}" > /tmp/blog/STATUS
+          cd /tmp/blog && git init -q -b ci-logs-android
+          git config user.name ci && git config user.email ci@local
+          git add -A && git commit -qm "android build log run ${GITHUB_RUN_NUMBER}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-logs-android
       - name: Publish to dist-android branch
         run: |
           mkdir -p /tmp/dist && cp build/app/outputs/flutter-apk/app-release.apk /tmp/dist/rada.apk
