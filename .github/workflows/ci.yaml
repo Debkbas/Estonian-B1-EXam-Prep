@@ -60,6 +60,11 @@ jobs:
           cache: true
       - run: cp .env.example .env
       - run: flutter create --platforms=macos --project-name rada .
+      - name: Entitlements — allow outgoing network (Supabase, TTS, courses)
+        run: |
+          for f in macos/Runner/DebugProfile.entitlements macos/Runner/Release.entitlements; do
+            /usr/libexec/PlistBuddy -c "Add :com.apple.security.network.client bool true" "$f" 2>/dev/null || true
+          done
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter build macos --release
@@ -93,6 +98,9 @@ jobs:
           cache: true
       - run: cp .env.example .env
       - run: flutter create --platforms=android --project-name rada .
+      - name: Android manifest — INTERNET permission for release
+        run: |
+          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter build apk --release # debug-signed by default; installable

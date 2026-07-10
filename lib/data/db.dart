@@ -112,6 +112,15 @@ class SyncProbes extends Table with SyncColumns {
   TextColumn get message => text()();
 }
 
+/// Simple key-value settings (goal minutes, sync cursors, theme...).
+class SettingsKv extends Table {
+  TextColumn get key => text()();
+  TextColumn get value => text()();
+
+  @override
+  Set<Column> get primaryKey => {key};
+}
+
 @DriftDatabase(tables: [
   Courses,
   Chapters,
@@ -124,10 +133,20 @@ class SyncProbes extends Table with SyncColumns {
   ExamAssets,
   MockExams,
   SyncProbes,
+  SettingsKv,
 ])
 class RadaDb extends _$RadaDb {
   RadaDb() : super(driftDatabase(name: 'rada'));
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  @override
+  MigrationStrategy get migration => MigrationStrategy(
+        onUpgrade: (m, from, to) async {
+          if (from < 2) {
+            await m.createTable(settingsKv);
+          }
+        },
+      );
 }

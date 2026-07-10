@@ -19,6 +19,8 @@ dependencies:
   http: ^1.2.0
   flutter_dotenv: ^5.1.0
   crypto: ^3.0.3
+  # course embed (Android + macOS support)
+  flutter_inappwebview: ^6.1.5
 
 dev_dependencies:
   flutter_test:

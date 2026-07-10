@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import 'data/db.dart';
-import 'features/dashboard/dashboard_screen.dart';
+import 'features/trail/trail_screen.dart';
 import 'theme/themes.dart';
 import 'theme/tokens.dart';
 
@@ -25,7 +25,7 @@ class _RadaAppState extends State<RadaApp> {
       title: 'Rada',
       debugShowCheckedModeBanner: false,
       theme: _tokens.toThemeData(),
-      home: DashboardScreen(
+      home: TrailScreen(
         db: widget.db,
         tokens: _tokens,
         syncConfigured: widget.syncConfigured,
