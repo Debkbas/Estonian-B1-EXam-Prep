@@ -1,0 +1,229 @@
+===== $ flutter --version
+Flutter 3.44.6 • channel stable • https://github.com/flutter/flutter.git
+Framework • revision ee80f08bbf (31 hours ago) • 2026-07-08 15:02:06 -0700
+Engine • hash d3a3293399556a85388faf8c6f0723a7a5597aa8 (revision 83675ed276) (9 days ago) • 2026-06-30 16:59:03.000Z
+Tools • Dart 3.12.2 • DevTools 2.57.0
+===== $ flutter pub get
+Resolving dependencies...
+Downloading packages...
++ _fe_analyzer_shared 96.0.0 (104.0.0 available)
++ analyzer 10.2.0 (14.0.0 available)
++ app_links 7.2.1
++ app_links_linux 1.0.3
++ app_links_platform_interface 2.0.4
++ app_links_web 1.0.4
++ args 2.7.0
++ async 2.13.1
++ audio_session 0.1.25 (0.2.4 available)
++ boolean_selector 2.1.2
++ build 4.0.7
++ build_config 1.3.1
++ build_daemon 4.1.2
++ build_runner 2.15.1
++ built_collection 5.1.1
++ built_value 8.12.6
++ characters 1.4.1
++ charcode 1.4.0
++ checked_yaml 2.0.4
++ cli_util 0.4.2 (0.5.1 available)
++ clock 1.1.2
++ code_assets 1.2.1
++ collection 1.19.1
++ convert 3.1.2
++ crypto 3.0.7
++ dart_jsonwebtoken 3.4.1
++ dart_style 3.1.7 (3.1.11 available)
++ drift 2.31.0 (2.34.1 available)
++ drift_dev 2.31.0 (2.34.2+1 available)
++ drift_flutter 0.2.8 (0.3.0 available)
++ fake_async 1.3.3
++ ffi 2.2.0
++ file 7.0.1
++ fixnum 1.1.1
++ flutter 0.0.0 from sdk flutter
++ flutter_dotenv 5.2.1 (6.0.1 available)
++ flutter_inappwebview 6.1.5
++ flutter_inappwebview_android 1.1.3
++ flutter_inappwebview_internal_annotations 1.3.0
++ flutter_inappwebview_ios 1.1.2
++ flutter_inappwebview_macos 1.1.2
++ flutter_inappwebview_platform_interface 1.3.0+1
++ flutter_inappwebview_web 1.1.2
++ flutter_inappwebview_windows 0.6.0
++ flutter_lints 4.0.0 (6.0.0 available)
++ flutter_test 0.0.0 from sdk flutter
++ flutter_web_plugins 0.0.0 from sdk flutter
++ functions_client 2.6.4
++ glob 2.1.3
++ gotrue 2.26.0
++ graphs 2.3.2
++ gtk 2.2.0
++ hooks 2.0.2
++ http 1.6.0
++ http_multi_server 3.2.2
++ http_parser 4.1.2
++ io 1.0.5
++ jni 1.0.0
++ jni_flutter 1.0.1
++ json_annotation 4.12.0
++ just_audio 0.9.46 (0.10.6 available)
++ just_audio_platform_interface 4.6.0
++ just_audio_web 0.4.16
++ jwt_decode 0.3.1
++ leak_tracker 11.0.2
++ leak_tracker_flutter_testing 3.0.10
++ leak_tracker_testing 3.0.2
++ lints 4.0.0 (6.1.0 available)
++ logging 1.3.0
++ matcher 0.12.19 (0.12.20 available)
++ material_color_utilities 0.13.0
++ meta 1.18.0 (1.19.0 available)
++ mime 2.0.0
++ objective_c 9.4.1
++ package_config 2.2.0 (3.0.0 available)
++ passkeys_platform_interface 2.8.0
++ path 1.9.1
++ path_provider 2.1.6
++ path_provider_android 2.3.1
++ path_provider_foundation 2.6.0
++ path_provider_linux 2.2.2
++ path_provider_platform_interface 2.1.3
++ path_provider_windows 2.3.0
++ platform 3.1.6
++ plugin_platform_interface 2.1.8
++ pointycastle 4.0.0
++ pool 1.5.2
++ postgrest 2.8.0
++ pub_semver 2.2.0
++ pubspec_parse 1.5.0
++ realtime_client 2.11.0
++ recase 4.1.0
++ record 6.2.1 (7.1.1 available)
++ record_android 1.5.2 (2.1.2 available)
++ record_ios 1.2.1 (2.1.1 available)
++ record_linux 1.3.1 (2.1.1 available)
++ record_macos 1.2.2 (2.1.1 available)
++ record_platform_interface 1.6.0 (2.1.0 available)
++ record_use 0.6.0
++ record_web 1.3.0 (2.1.1 available)
++ record_windows 1.0.7 (2.2.2 available)
++ retry 3.1.2
++ rxdart 0.28.0
++ shared_preferences 2.5.5
++ shared_preferences_android 2.4.26
++ shared_preferences_foundation 2.5.6
++ shared_preferences_linux 2.4.1
++ shared_preferences_platform_interface 2.4.2
++ shared_preferences_web 2.4.3
++ shared_preferences_windows 2.4.1
++ shelf 1.4.2
++ shelf_web_socket 3.0.0
++ sky_engine 0.0.0 from sdk flutter
++ source_gen 4.2.3
++ source_span 1.10.2
++ sqlite3 2.9.4 (3.3.4 available)
++ sqlite3_flutter_libs 0.5.42 (0.6.0+eol available)
++ sqlparser 0.43.1 (0.45.0 available)
++ stack_trace 1.12.1
++ storage_client 2.6.0
++ stream_channel 2.1.4
++ stream_transform 2.1.1
++ string_scanner 1.4.1
++ supabase 2.14.0
++ supabase_flutter 2.16.0
++ synchronized 3.4.1
++ term_glyph 1.2.2
++ test_api 0.7.11 (0.7.13 available)
++ typed_data 1.4.0
++ url_launcher 6.3.2
++ url_launcher_android 6.3.32
++ url_launcher_ios 6.4.1
++ url_launcher_linux 3.2.2
++ url_launcher_macos 3.2.5
++ url_launcher_platform_interface 2.3.2
++ url_launcher_web 2.4.3
++ url_launcher_windows 3.1.5
++ uuid 4.5.3
++ vector_math 2.2.0 (2.4.0 available)
++ vm_service 15.2.0
++ watcher 1.2.1
++ web 1.1.1
++ web_socket 1.0.1
++ web_socket_channel 3.0.3
++ xdg_directories 1.1.0
++ yaml 3.1.3
++ yet_another_json_isolate 2.1.1
+Changed 147 dependencies!
+28 packages have newer versions incompatible with dependency constraints.
+Try `flutter pub outdated` for more information.
+===== $ dart run build_runner build --delete-conflicting-outputs
+  1s compiling builders/aot
+  2s compiling builders/aot
+  3s compiling builders/aot
+  4s compiling builders/aot
+  5s compiling builders/aot
+  6s compiling builders/aot
+  7s compiling builders/aot
+  8s compiling builders/aot
+  9s compiling builders/aot
+  10s compiling builders/aot
+  11s compiling builders/aot
+  12s compiling builders/aot
+  13s compiling builders/aot
+  14s compiling builders/aot
+  15s compiling builders/aot
+  17s compiling builders/aot
+  18s compiling builders/aot
+  19s compiling builders/aot
+  20s compiling builders/aot
+  21s compiling builders/aot
+  22s compiling builders/aot
+  23s compiling builders/aot
+  23s compiling builders/aot
+W These options have been removed and were ignored: --delete-conflicting-outputs
+  0s drift_dev on 116 inputs; lib/app.dart
+  7s drift_dev on 116 inputs: 1 output; spent 5s analyzing, 1s resolving, 1s sdk; lib/data/db.dart
+W drift_dev on lib/data/db.dart:
+  line 30, column 48 of package:rada/data/db.dart: This parameter should be a simple class name
+     ╷
+  30 │   TextColumn get courseId => text().references(Courses, #id)();
+     │                                                ^^^^^^^
+     ╵
+W drift_dev on lib/data/db.dart:
+  line 79, column 51 of package:rada/data/db.dart: This parameter should be a simple class name
+     ╷
+  79 │   TextColumn get vocabItemId => text().references(VocabItems, #id)();
+     │                                                   ^^^^^^^^^^
+     ╵
+W drift_dev on lib/data/db.dart:
+  line 113, column 51 of package:rada/data/db.dart: This parameter should be a simple class name
+      ╷
+  113 │   TextColumn get examAssetId => text().references(ExamAssets, #id)();
+      │                                                   ^^^^^^^^^^
+      ╵
+  8s drift_dev on 116 inputs: 29 skipped, 55 output, 32 no-op; spent 6s analyzing, 1s resolving, 1s sdk
+  0s source_gen:combining_builder on 58 inputs; lib/app.dart
+  0s source_gen:combining_builder on 58 inputs: 29 skipped, 1 output, 28 no-op
+  Built with build_runner/aot in 32s; wrote 56 outputs.
+===== $ flutter analyze
+Analyzing Estonian-B1-EXam-Prep...                              
+No issues found! (ran in 7.9s)
+===== $ flutter test
+
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: empty log = 0 streak
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: today met counts immediately
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: unbroken run counts back
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: today not yet met does not break streak
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: one grace day per week survives
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: two misses in one week break the streak
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/streak_test.dart: below-goal minutes do not count
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/smoke_test.dart: all themes produce valid ThemeData
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/smoke_test.dart: Põhjavalgus is dark-native with distinct gradient stops
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/align_test.dart: normalize strips punctuation and case
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/align_test.dart: perfect match
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/align_test.dart: one wrong word
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/align_test.dart: empty heard = 0
+✅ /home/runner/work/Estonian-B1-EXam-Prep/Estonian-B1-EXam-Prep/test/align_test.dart: order matters (LCS, not bag of words)
+
+🎉 14 tests passed.
+===== EXIT STATUS: 0
