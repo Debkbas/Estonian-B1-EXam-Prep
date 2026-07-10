@@ -107,6 +107,13 @@ class MockExams extends Table with SyncColumns {
   TextColumn get notes => text().nullable()();
 }
 
+/// Hand-entered once per sample task (from the official PDFs) — enables
+/// auto-grading of reading/listening mocks (spec §4.4).
+class AnswerKeys extends Table with SyncColumns {
+  TextColumn get examAssetId => text().references(ExamAssets, #id)();
+  TextColumn get answersJson => text()(); // JSON array, index = question no.
+}
+
 /// Used only by the M0 sync acceptance test.
 class SyncProbes extends Table with SyncColumns {
   TextColumn get message => text()();
@@ -134,18 +141,22 @@ class SettingsKv extends Table {
   MockExams,
   SyncProbes,
   SettingsKv,
+  AnswerKeys,
 ])
 class RadaDb extends _$RadaDb {
   RadaDb() : super(driftDatabase(name: 'rada'));
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
         onUpgrade: (m, from, to) async {
           if (from < 2) {
             await m.createTable(settingsKv);
+          }
+          if (from < 3) {
+            await m.createTable(answerKeys);
           }
         },
       );

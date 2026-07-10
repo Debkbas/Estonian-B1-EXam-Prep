@@ -24,6 +24,7 @@ Future<void> main() async {
 
   final db = RadaDb();
   await seedSyllabusIfEmpty(db);
+  await seedExamAssetsIfEmpty(db);
 
   runApp(RadaApp(db: db, syncConfigured: syncConfigured));
 }

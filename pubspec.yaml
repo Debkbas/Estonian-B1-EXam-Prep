@@ -21,6 +21,9 @@ dependencies:
   crypto: ^3.0.3
   # course embed (Android + macOS support)
   flutter_inappwebview: ^6.1.5
+  # exam vault (M2)
+  just_audio: ^0.9.40
+  url_launcher: ^6.3.0
 
 dev_dependencies:
   flutter_test:

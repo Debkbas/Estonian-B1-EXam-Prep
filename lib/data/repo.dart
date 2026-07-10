@@ -133,6 +133,67 @@ class Repo {
     return rows.isEmpty ? null : rows.first;
   }
 
+  // ---- exam vault (M2) --------------------------------------------------------
+
+  Future<List<ExamAsset>> examAssets() async =>
+      (db.select(db.examAssets)
+            ..where((a) => a.deleted.equals(false))
+            ..orderBy([(a) => OrderingTerm.asc(a.id)]))
+          .get();
+
+  Future<List<String>?> answerKeyFor(String assetId) async {
+    final row = await (db.select(db.answerKeys)
+          ..where((k) =>
+              k.examAssetId.equals(assetId) & k.deleted.equals(false)))
+        .getSingleOrNull();
+    if (row == null) return null;
+    return (jsonDecode(row.answersJson) as List).cast<String>();
+  }
+
+  Future<void> saveAnswerKey(String assetId, List<String> answers) async {
+    await db.into(db.answerKeys).insert(
+          AnswerKeysCompanion.insert(
+            id: 'key-$assetId',
+            examAssetId: assetId,
+            answersJson: jsonEncode(answers),
+            updatedAt: Value(DateTime.now()),
+          ),
+          mode: InsertMode.insertOrReplace,
+        );
+  }
+
+  Future<void> saveMockResult({
+    required String section,
+    required String assetId,
+    required List<String> given,
+    required List<String> correct,
+    required double pct,
+    required int durationS,
+  }) async {
+    final now = DateTime.now();
+    await db.into(db.mockExams).insert(MockExamsCompanion.insert(
+          id: 'mock-${now.microsecondsSinceEpoch}',
+          startedAt: now,
+          sectionsJson: jsonEncode({
+            'section': section,
+            'asset_id': assetId,
+            'given': given,
+            'correct': correct,
+            'duration_s': durationS,
+          }),
+          totalPct: Value(pct),
+          updatedAt: Value(now),
+        ));
+    await logActivity((durationS / 60).round(), 'exam_prep',
+        detail: {'mock': assetId, 'pct': pct});
+  }
+
+  Future<List<MockExam>> mockHistory() async =>
+      (db.select(db.mockExams)
+            ..where((m) => m.deleted.equals(false))
+            ..orderBy([(m) => OrderingTerm.desc(m.startedAt)]))
+          .get();
+
   Future<void> setExamDate(DateTime examDate) async {
     // B1 registration typically closes ~5 weeks before (see spec appendix).
     final regDeadline = examDate.subtract(const Duration(days: 36));
