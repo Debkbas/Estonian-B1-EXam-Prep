@@ -103,6 +103,11 @@ jobs:
           sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Patch flutter_inappwebview proguard ref (AGP compat)
+        run: |
+          for f in $(find ~/.pub-cache -path "*flutter_inappwebview_android*" -name "build.gradle"); do
+            sed -i "s/proguard-android\.txt/proguard-android-optimize.txt/g" "$f" && echo "patched $f"
+          done
       - name: Build APK (captured)
         run: |
           set -o pipefail
