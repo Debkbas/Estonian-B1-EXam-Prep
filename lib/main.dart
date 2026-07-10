@@ -19,7 +19,7 @@ Future<void> main() async {
   final syncConfigured =
       (supabaseUrl?.isNotEmpty ?? false) && (supabaseKey?.isNotEmpty ?? false);
   if (syncConfigured) {
-    await Supabase.initialize(url: supabaseUrl!, anonKey: supabaseKey!);
+    await Supabase.initialize(url: supabaseUrl!, publishableKey: supabaseKey!);
   }
 
   final db = RadaDb();
