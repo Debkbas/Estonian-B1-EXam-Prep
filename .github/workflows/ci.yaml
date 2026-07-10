@@ -6,6 +6,9 @@ on:
   pull_request:
   workflow_dispatch: # manual trigger for platform builds
 
+permissions:
+  contents: write # lets CI push logs to the ci-logs branch
+
 jobs:
   # Cheap fast loop: every push (Linux runner, 1x minutes)
   quality:
@@ -17,10 +20,32 @@ jobs:
           channel: stable
           cache: true
       - run: cp .env.example .env
-      - run: flutter pub get
-      - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter analyze
-      - run: flutter test
+      - name: Run checks (captured)
+        run: |
+          set -o pipefail
+          status=0
+          run() { echo "===== \$ $*" | tee -a ci.log; "$@" 2>&1 | tee -a ci.log || status=1; }
+          run flutter --version
+          run flutter pub get
+          run dart run build_runner build --delete-conflicting-outputs
+          run flutter analyze
+          run flutter test
+          echo "===== EXIT STATUS: $status" | tee -a ci.log
+          echo "CI_STATUS=$status" >> "$GITHUB_ENV"
+          exit $status
+      # Publish the log to a git branch so it is readable via plain `git fetch`
+      # (sandbox has github.com git access but no Actions API access).
+      - name: Publish log to ci-logs branch
+        if: always()
+        run: |
+          mkdir -p /tmp/cilogs
+          cp ci.log /tmp/cilogs/quality.log || echo "no log" > /tmp/cilogs/quality.log
+          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA} status=${CI_STATUS:-unknown}" > /tmp/cilogs/STATUS
+          cd /tmp/cilogs
+          git init -q -b ci-logs
+          git config user.name ci && git config user.email ci@local
+          git add -A && git commit -qm "quality run ${GITHUB_RUN_NUMBER} (${GITHUB_SHA})"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-logs
 
   # Real artifacts: manual trigger or push to main (macOS runner, 10x minutes)
   build-macos:
