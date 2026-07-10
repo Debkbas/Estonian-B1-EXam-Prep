@@ -24,6 +24,8 @@ dependencies:
   # exam vault (M2)
   just_audio: ^0.9.40
   url_launcher: ^6.3.0
+  # speech studio (M3)
+  record: ^5.1.2
 
 dev_dependencies:
   flutter_test:

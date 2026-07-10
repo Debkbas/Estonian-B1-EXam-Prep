@@ -60,11 +60,13 @@ jobs:
           cache: true
       - run: cp .env.example .env
       - run: flutter create --platforms=macos --project-name rada .
-      - name: Entitlements — allow outgoing network (Supabase, TTS, courses)
+      - name: Entitlements — network client + microphone
         run: |
           for f in macos/Runner/DebugProfile.entitlements macos/Runner/Release.entitlements; do
             /usr/libexec/PlistBuddy -c "Add :com.apple.security.network.client bool true" "$f" 2>/dev/null || true
+            /usr/libexec/PlistBuddy -c "Add :com.apple.security.device.audio-input bool true" "$f" 2>/dev/null || true
           done
+          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'Estonian speech practice recording'" macos/Runner/Info.plist 2>/dev/null || true
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter build macos --release
@@ -98,9 +100,9 @@ jobs:
           cache: true
       - run: cp .env.example .env
       - run: flutter create --platforms=android --project-name rada .
-      - name: Android manifest — INTERNET permission for release
+      - name: Android manifest — INTERNET + RECORD_AUDIO permissions
         run: |
-          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' android/app/src/main/AndroidManifest.xml
+          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <application#' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
       - name: Patch flutter_inappwebview proguard ref (AGP compat)

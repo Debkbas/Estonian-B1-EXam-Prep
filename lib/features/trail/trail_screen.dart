@@ -11,6 +11,7 @@ import '../../services/sync_service.dart';
 import '../../theme/themes.dart';
 import '../../theme/tokens.dart';
 import '../course/course_webview_screen.dart';
+import '../speech/speech_home_screen.dart';
 import '../vault/vault_screen.dart';
 
 /// The Trail — signature home screen (spec §8.2).
@@ -110,6 +111,17 @@ class _TrailScreenState extends State<TrailScreen> {
       appBar: AppBar(
         title: const Text('Rada'),
         actions: [
+          IconButton(
+            tooltip: _l.t('Speech studio', 'Kõnestuudio'),
+            icon: const Icon(Icons.mic_none),
+            onPressed: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => SpeechHomeScreen(
+                    repo: _repo, tokens: widget.tokens, l: _l),
+              ));
+              _refresh();
+            },
+          ),
           IconButton(
             tooltip: _l.t('Exam vault', 'Eksami varamu'),
             icon: const Icon(Icons.library_books_outlined),
