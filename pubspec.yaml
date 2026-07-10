@@ -1,0 +1,34 @@
+name: rada
+description: Personal Estonian 0->B1 companion (tracker, exam prep, speech tutor).
+publish_to: "none"
+version: 0.1.0
+
+environment:
+  sdk: ">=3.4.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  # local-first DB (spec §4, §9)
+  drift: ^2.20.0
+  drift_flutter: ^0.2.0
+  path_provider: ^2.1.4
+  # sync (spec §9)
+  supabase_flutter: ^2.5.0
+  # HTTP for Neurokõne TTS + LLM adapters (spec §6)
+  http: ^1.2.0
+  flutter_dotenv: ^5.1.0
+  crypto: ^3.0.3
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  drift_dev: ^2.20.0
+  build_runner: ^2.4.0
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/seed/syllabus.json
+    - .env

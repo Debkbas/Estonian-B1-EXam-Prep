@@ -1,0 +1,199 @@
+{
+  "note": "Chapter titles are placeholders — copy real titles from the course tables of contents on first login (M1 task).",
+  "courses": [
+    {
+      "id": "course-keeleklikk",
+      "slug": "keeleklikk",
+      "title": "Keeleklikk",
+      "level_range": "0-A2",
+      "base_url": "https://www.keeleklikk.ee",
+      "chapters_total": 16,
+      "chapters": [
+        {
+          "id": "kk-01",
+          "index": 1,
+          "title_et": "Peatükk 1",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-02",
+          "index": 2,
+          "title_et": "Peatükk 2",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-03",
+          "index": 3,
+          "title_et": "Peatükk 3",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-04",
+          "index": 4,
+          "title_et": "Peatükk 4",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-05",
+          "index": 5,
+          "title_et": "Peatükk 5",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-06",
+          "index": 6,
+          "title_et": "Peatükk 6",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-07",
+          "index": 7,
+          "title_et": "Peatükk 7",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-08",
+          "index": 8,
+          "title_et": "Peatükk 8",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-09",
+          "index": 9,
+          "title_et": "Peatükk 9",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-10",
+          "index": 10,
+          "title_et": "Peatükk 10",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-11",
+          "index": 11,
+          "title_et": "Peatükk 11",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-12",
+          "index": 12,
+          "title_et": "Peatükk 12",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-13",
+          "index": 13,
+          "title_et": "Peatükk 13",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-14",
+          "index": 14,
+          "title_et": "Peatükk 14",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-15",
+          "index": 15,
+          "title_et": "Peatükk 15",
+          "est_minutes": 180
+        },
+        {
+          "id": "kk-16",
+          "index": 16,
+          "title_et": "Peatükk 16",
+          "est_minutes": 180
+        }
+      ]
+    },
+    {
+      "id": "course-keeletee",
+      "slug": "keeletee",
+      "title": "Keeletee",
+      "level_range": "A2-B1",
+      "base_url": "https://www.keeletee.edu.ee",
+      "chapters_total": 13,
+      "chapters": [
+        {
+          "id": "kt-01",
+          "index": 1,
+          "title_et": "Peatükk 1",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-02",
+          "index": 2,
+          "title_et": "Peatükk 2",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-03",
+          "index": 3,
+          "title_et": "Peatükk 3",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-04",
+          "index": 4,
+          "title_et": "Peatükk 4",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-05",
+          "index": 5,
+          "title_et": "Peatükk 5",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-06",
+          "index": 6,
+          "title_et": "Peatükk 6",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-07",
+          "index": 7,
+          "title_et": "Peatükk 7",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-08",
+          "index": 8,
+          "title_et": "Peatükk 8",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-09",
+          "index": 9,
+          "title_et": "Peatükk 9",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-10",
+          "index": 10,
+          "title_et": "Peatükk 10",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-11",
+          "index": 11,
+          "title_et": "Peatükk 11",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-12",
+          "index": 12,
+          "title_et": "Peatükk 12",
+          "est_minutes": 240
+        },
+        {
+          "id": "kt-13",
+          "index": 13,
+          "title_et": "Peatükk 13",
+          "est_minutes": 240
+        }
+      ]
+    }
+  ]
+}

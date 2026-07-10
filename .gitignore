@@ -1,0 +1,25 @@
+# Env & secrets
+.env
+
+# Flutter/Dart
+.dart_tool/
+build/
+.flutter-plugins*
+.packages
+pubspec.lock
+
+# Generated platform folders (recreate with: flutter create --platforms=android,macos .)
+android/
+macos/
+ios/
+linux/
+windows/
+web/
+
+# Drift codegen
+**/*.g.dart
+
+# IDE
+.idea/
+.vscode/
+*.iml

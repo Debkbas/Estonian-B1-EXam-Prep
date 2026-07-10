@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch: # manual trigger for platform builds
+
+jobs:
+  # Cheap fast loop: every push (Linux runner, 1x minutes)
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cp .env.example .env
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter analyze
+      - run: flutter test
+
+  # Real artifacts: manual trigger or push to main (macOS runner, 10x minutes)
+  build-macos:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cp .env.example .env
+      - run: flutter create --platforms=macos --project-name rada .
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter build macos --debug
+      - name: Zip .app
+        run: cd build/macos/Build/Products/Debug && zip -r rada-macos-debug.zip rada.app
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rada-macos-debug
+          path: build/macos/Build/Products/Debug/rada-macos-debug.zip
+
+  build-android:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: quality
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - run: cp .env.example .env
+      - run: flutter create --platforms=android --project-name rada .
+      - run: flutter pub get
+      - run: dart run build_runner build --delete-conflicting-outputs
+      - run: flutter build apk --debug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: rada-android-debug
+          path: build/app/outputs/flutter-apk/app-debug.apk
