@@ -47,7 +47,7 @@ jobs:
           git add -A && git commit -qm "quality run ${GITHUB_RUN_NUMBER} (${GITHUB_SHA})"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-logs
 
-  # Real artifacts: manual trigger or push to main (macOS runner, 10x minutes)
+  # Installables published to dist-* branches (fetchable via plain git).
   build-macos:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
     needs: quality
@@ -62,13 +62,20 @@ jobs:
       - run: flutter create --platforms=macos --project-name rada .
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter build macos --debug
-      - name: Zip .app
-        run: cd build/macos/Build/Products/Debug && zip -r rada-macos-debug.zip rada.app
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rada-macos-debug
-          path: build/macos/Build/Products/Debug/rada-macos-debug.zip
+      - run: flutter build macos --release
+      - name: Create DMG
+        run: |
+          mkdir -p dmgroot && cp -R build/macos/Build/Products/Release/rada.app dmgroot/
+          hdiutil create -volname Rada -srcfolder dmgroot -ov -format UDZO Rada.dmg
+          ls -lh Rada.dmg
+      - name: Publish to dist-macos branch
+        run: |
+          mkdir -p /tmp/dist && cp Rada.dmg /tmp/dist/
+          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA}" > /tmp/dist/STATUS
+          cd /tmp/dist && git init -q -b dist-macos
+          git config user.name ci && git config user.email ci@local
+          git add -A && git commit -qm "Rada.dmg run ${GITHUB_RUN_NUMBER}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" dist-macos
 
   build-android:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
@@ -88,8 +95,12 @@ jobs:
       - run: flutter create --platforms=android --project-name rada .
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
-      - run: flutter build apk --debug
-      - uses: actions/upload-artifact@v4
-        with:
-          name: rada-android-debug
-          path: build/app/outputs/flutter-apk/app-debug.apk
+      - run: flutter build apk --release # debug-signed by default; installable
+      - name: Publish to dist-android branch
+        run: |
+          mkdir -p /tmp/dist && cp build/app/outputs/flutter-apk/app-release.apk /tmp/dist/rada.apk
+          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA}" > /tmp/dist/STATUS
+          cd /tmp/dist && git init -q -b dist-android
+          git config user.name ci && git config user.email ci@local
+          git add -A && git commit -qm "rada.apk run ${GITHUB_RUN_NUMBER}"
+          git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" dist-android
