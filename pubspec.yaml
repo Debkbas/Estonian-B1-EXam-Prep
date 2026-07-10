@@ -25,7 +25,7 @@ dependencies:
   just_audio: ^0.9.40
   url_launcher: ^6.3.0
   # speech studio (M3)
-  record: ^5.1.2
+  record: ^6.0.0
 
 dev_dependencies:
   flutter_test:
