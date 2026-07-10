@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../data/db.dart';
 import '../../data/repo.dart';
+import '../../domain/l10n.dart';
 import '../../domain/streak.dart';
 import '../../services/sync_service.dart';
 import '../../theme/themes.dart';
@@ -39,6 +40,7 @@ class _TrailScreenState extends State<TrailScreen> {
   int _streak = 0;
   ExamPlan? _plan;
   String _syncMsg = '';
+  L10n _l = const L10n('both');
 
   @override
   void initState() {
@@ -51,6 +53,7 @@ class _TrailScreenState extends State<TrailScreen> {
     final minutes = await _repo.minutesByDay();
     final goal = await _repo.goalMinutes();
     final plan = await _repo.examPlan();
+    final lang = await _repo.getSetting('ui_lang') ?? 'both';
     if (!mounted) return;
     setState(() {
       _trail = trail;
@@ -58,6 +61,7 @@ class _TrailScreenState extends State<TrailScreen> {
       _goal = goal;
       _streak = currentStreak(minutes, goal);
       _plan = plan;
+      _l = L10n(lang);
     });
   }
 
@@ -80,10 +84,11 @@ class _TrailScreenState extends State<TrailScreen> {
 
   Future<void> _syncNow() async {
     if (!widget.syncConfigured) {
-      setState(() => _syncMsg = 'Supabase pole seadistatud (.env)');
+      setState(() => _syncMsg = _l.t('Supabase not configured (.env)',
+          'Supabase pole seadistatud (.env)'));
       return;
     }
-    setState(() => _syncMsg = 'sünkimine…');
+    setState(() => _syncMsg = _l.t('syncing…', 'sünkimine…'));
     try {
       final sync = SyncService(Supabase.instance.client, widget.db,
           deviceId: Platform.operatingSystem);
@@ -105,12 +110,12 @@ class _TrailScreenState extends State<TrailScreen> {
         title: const Text('Rada'),
         actions: [
           IconButton(
-            tooltip: 'Sünki',
+            tooltip: _l.t('Sync', 'Sünki'),
             icon: const Icon(Icons.sync),
             onPressed: _syncNow,
           ),
           IconButton(
-            tooltip: 'Seaded',
+            tooltip: _l.t('Settings', 'Seaded'),
             icon: const Icon(Icons.settings_outlined),
             onPressed: _openSettings,
           ),
@@ -156,7 +161,8 @@ class _TrailScreenState extends State<TrailScreen> {
     return Row(
       children: [
         _chip(t, Icons.local_fire_department,
-            '$_streak päeva', _streak > 0 ? t.warning : t.textSecondary),
+            _l.short('$_streak days', '$_streak päeva'),
+            _streak > 0 ? t.warning : t.textSecondary),
         const SizedBox(width: 8),
         _chip(t, Icons.flag_outlined,
             '${trail.doneCount}/${trail.totalChapters}', t.accent),
@@ -169,8 +175,9 @@ class _TrailScreenState extends State<TrailScreen> {
                 t,
                 Icons.event,
                 daysLeft == null
-                    ? 'vali eksami kuupäev'
-                    : 'eksamini $daysLeft päeva',
+                    ? _l.t('set exam date', 'vali eksami kuupäev')
+                    : _l.t('exam in $daysLeft days',
+                        'eksamini $daysLeft päeva'),
                 daysLeft != null && daysLeft < 60
                     ? t.warning
                     : t.textSecondary),
@@ -215,7 +222,8 @@ class _TrailScreenState extends State<TrailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Tänane siht', style: Theme.of(context).textTheme.titleMedium),
+            Text(_l.t("Today's goal", 'Tänane siht'),
+                style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -225,9 +233,13 @@ class _TrailScreenState extends State<TrailScreen> {
                         : Icons.timer_outlined,
                     color: minutesPct >= 1.0 ? t.success : t.accent),
                 const SizedBox(width: 8),
-                Expanded(child: Text('Õpi $_goal minutit ($_todayMinutes/$_goal)')),
+                Expanded(
+                    child: Text(
+                        '${_l.t('Study $_goal min', 'Õpi $_goal min')} '
+                        '($_todayMinutes/$_goal)')),
                 IconButton(
-                  tooltip: '+15 min mujal õpitud',
+                  tooltip: _l.t('+15 min studied elsewhere',
+                      '+15 min mujal õpitud'),
                   icon: const Icon(Icons.add_circle_outline),
                   onPressed: () async {
                     await _repo.logActivity(15, 'course',
@@ -253,10 +265,11 @@ class _TrailScreenState extends State<TrailScreen> {
                   Icon(Icons.school_outlined, color: t.accent),
                   const SizedBox(width: 8),
                   Expanded(
-                      child: Text('Järgmine: ${course.title} — ${next.titleEt}')),
+                      child: Text(
+                          '${_l.t('Next', 'Järgmine')}: ${course.title} — ${next.titleEt}')),
                   FilledButton(
                     onPressed: () => _openCourse(course),
-                    child: const Text('Jätka'),
+                    child: Text(_l.short('Continue', 'Jätka')),
                   ),
                 ],
               )
@@ -264,7 +277,9 @@ class _TrailScreenState extends State<TrailScreen> {
               Row(children: [
                 Icon(Icons.emoji_events, color: t.success),
                 const SizedBox(width: 8),
-                const Expanded(child: Text('Kõik peatükid tehtud — eksamifaas!')),
+                Expanded(
+                    child: Text(_l.t('All chapters done — exam phase!',
+                        'Kõik peatükid tehtud — eksamifaas!'))),
               ]),
           ],
         ),
@@ -295,7 +310,7 @@ class _TrailScreenState extends State<TrailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Viimased $weeks nädalat',
+            Text(_l.t('Last $weeks weeks', 'Viimased $weeks nädalat'),
                 style: Theme.of(context).textTheme.titleMedium),
             const SizedBox(height: 12),
             Row(
@@ -347,7 +362,7 @@ class _TrailScreenState extends State<TrailScreen> {
           Text('$done/${chapters.length}',
               style: TextStyle(color: t.textSecondary)),
           IconButton(
-            tooltip: 'Ava kursus',
+            tooltip: _l.t('Open course', 'Ava kursus'),
             icon: Icon(Icons.open_in_new, size: 18, color: t.accent),
             onPressed: () => _openCourse(course),
           ),
@@ -440,11 +455,13 @@ class _TrailScreenState extends State<TrailScreen> {
           children: [
             ListTile(
               title: Text('${course.title} — ${ch.titleEt}'),
-              subtitle: Text(done ? 'Tehtud' : 'Tegemata'),
+              subtitle: Text(done
+                  ? _l.t('Done', 'Tehtud')
+                  : _l.t('Not done', 'Tegemata')),
             ),
             ListTile(
               leading: const Icon(Icons.open_in_new),
-              title: const Text('Ava kursus'),
+              title: Text(_l.t('Open course', 'Ava kursus')),
               onTap: () {
                 Navigator.pop(ctx);
                 _openCourse(course, fragment: ch.urlFragment);
@@ -452,7 +469,9 @@ class _TrailScreenState extends State<TrailScreen> {
             ),
             ListTile(
               leading: Icon(done ? Icons.undo : Icons.check_circle_outline),
-              title: Text(done ? 'Märgi tegemata' : 'Märgi tehtuks'),
+              title: Text(done
+                  ? _l.t('Mark not done', 'Märgi tegemata')
+                  : _l.t('Mark done', 'Märgi tehtuks')),
               onTap: () async {
                 Navigator.pop(ctx);
                 await _repo.setChapterDone(ch.id, !done);
@@ -494,9 +513,29 @@ class _TrailScreenState extends State<TrailScreen> {
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Seaded', style: Theme.of(ctx).textTheme.titleLarge),
+            Text(_l.t('Settings', 'Seaded'),
+                style: Theme.of(ctx).textTheme.titleLarge),
             const SizedBox(height: 12),
-            Text('Teema', style: Theme.of(ctx).textTheme.titleSmall),
+            Text(_l.t('App language', 'Rakenduse keel'),
+                style: Theme.of(ctx).textTheme.titleSmall),
+            Wrap(
+              spacing: 8,
+              children: [
+                for (final m in L10n.modes)
+                  ChoiceChip(
+                    label: Text(L10n.modeLabel(m)),
+                    selected: _l.mode == m,
+                    onSelected: (_) async {
+                      await _repo.setSetting('ui_lang', m);
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      _refresh();
+                    },
+                  ),
+              ],
+            ),
+            const SizedBox(height: 12),
+            Text(_l.t('Theme', 'Teema'),
+                style: Theme.of(ctx).textTheme.titleSmall),
             Wrap(
               spacing: 8,
               children: [
@@ -515,9 +554,10 @@ class _TrailScreenState extends State<TrailScreen> {
             TextField(
               controller: goalCtl,
               keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: 'Päevane siht (minutit)',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText:
+                    _l.t('Daily goal (minutes)', 'Päevane siht (minutit)'),
+                border: const OutlineInputBorder(),
               ),
             ),
             const SizedBox(height: 12),
@@ -532,7 +572,7 @@ class _TrailScreenState extends State<TrailScreen> {
                     if (ctx.mounted) Navigator.pop(ctx);
                     _refresh();
                   },
-                  child: const Text('Salvesta'),
+                  child: Text(_l.short('Save', 'Salvesta')),
                 ),
                 const SizedBox(width: 12),
                 OutlinedButton(
@@ -540,7 +580,7 @@ class _TrailScreenState extends State<TrailScreen> {
                     Navigator.pop(ctx);
                     _pickExamDate();
                   },
-                  child: const Text('Eksami kuupäev'),
+                  child: Text(_l.t('Exam date', 'Eksami kuupäev')),
                 ),
               ],
             ),
