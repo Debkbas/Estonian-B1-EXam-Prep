@@ -67,8 +67,12 @@ class _ConverseTabState extends State<ConverseTab> {
       _input.clear();
     });
     try {
-      final reply = await widget.config.llm
-          .chat(system: _tutorSystem, messages: List.of(_history));
+      // B11: cap context to the last 20 turns
+      final window = _history.length > 20
+          ? _history.sublist(_history.length - 20)
+          : List.of(_history);
+      final reply =
+          await widget.config.llm.chat(system: _tutorSystem, messages: window);
       setState(() {
         _history.add(ChatMsg('assistant', reply));
         _busy = false;

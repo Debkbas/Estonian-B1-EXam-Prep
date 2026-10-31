@@ -45,6 +45,7 @@ class _SpeechHomeScreenState extends State<SpeechHomeScreen> {
     final lmUrlCtl = TextEditingController(text: c.lmstudioUrl);
     final lmModelCtl = TextEditingController(text: c.lmstudioModel);
     final keyCtl = TextEditingController(text: c.anthropicKey);
+    final modelCtl = TextEditingController(text: c.anthropicModel);
     var mode = c.llmMode;
     var voice = c.ttsVoice;
 
@@ -75,7 +76,7 @@ class _SpeechHomeScreenState extends State<SpeechHomeScreen> {
                     ),
                   ]),
                   const SizedBox(height: 8),
-                  if (mode == 'cloud')
+                  if (mode == 'cloud') ...[
                     TextField(
                       controller: keyCtl,
                       obscureText: true,
@@ -83,8 +84,18 @@ class _SpeechHomeScreenState extends State<SpeechHomeScreen> {
                           labelText: 'Anthropic API key',
                           border: OutlineInputBorder(),
                           isDense: true),
-                    )
-                  else ...[
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: modelCtl,
+                      decoration: const InputDecoration(
+                          labelText: 'Model',
+                          helperText:
+                              'claude-sonnet-5-5 (quality) · claude-haiku-5-5 (cheap)',
+                          border: OutlineInputBorder(),
+                          isDense: true),
+                    ),
+                  ] else ...[
                     TextField(
                       controller: lmUrlCtl,
                       decoration: const InputDecoration(
@@ -139,6 +150,9 @@ class _SpeechHomeScreenState extends State<SpeechHomeScreen> {
                   ..lmstudioUrl = lmUrlCtl.text.trim()
                   ..lmstudioModel = lmModelCtl.text.trim()
                   ..anthropicKey = keyCtl.text.trim()
+                  ..anthropicModel = modelCtl.text.trim().isEmpty
+                      ? 'claude-sonnet-5-5'
+                      : modelCtl.text.trim()
                   ..ttsVoice = voice;
                 await c.save(widget.repo);
                 if (ctx.mounted) Navigator.pop(ctx);

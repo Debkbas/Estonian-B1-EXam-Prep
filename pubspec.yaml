@@ -17,7 +17,6 @@ dependencies:
   supabase_flutter: ^2.5.0
   # HTTP for Neurokõne TTS + LLM adapters (spec §6)
   http: ^1.2.0
-  flutter_dotenv: ^5.1.0
   crypto: ^3.0.3
   # course embed (Android + macOS support)
   flutter_inappwebview: ^6.1.5
@@ -38,4 +37,3 @@ flutter:
   uses-material-design: true
   assets:
     - assets/seed/syllabus.json
-    - .env

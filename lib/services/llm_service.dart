@@ -63,7 +63,7 @@ class AnthropicLlm implements LlmService {
   final String apiKey;
   final String model;
 
-  AnthropicLlm({required this.apiKey, this.model = 'claude-sonnet-4-5'});
+  AnthropicLlm({required this.apiKey, this.model = 'claude-sonnet-5-5'});
 
   @override
   String get backendLabel => 'cloud';

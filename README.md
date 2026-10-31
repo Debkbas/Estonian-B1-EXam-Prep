@@ -1,41 +1,42 @@
-# Rada — M0 walking skeleton
+# Rada — Estonian 0→B1 companion
 
-Personal Estonian 0→B1 companion (Android + macOS). See `estonian-b1-app-spec.md` for the full spec.
+Personal study app (Android + macOS). Spec: `docs/estonian-b1-app-spec.md`. Review/backlog: `docs/REVIEW-2026-11.md`.
 
-## What this skeleton contains
+## Install
 
-- `pubspec.yaml` — minimal M0 dependencies (Drift, Supabase, http)
-- `lib/theme/` — token layer + two themes: **Vaikus** (calm default) and **Põhjavalgus** (dark aurora)
-- `lib/data/db.dart` — Drift schema implementing spec §4 (courses, chapters, progress, activity log, vocab, sessions, exam plan…)
-- `lib/data/seed_loader.dart` + `assets/seed/syllabus.json` — Keeleklikk (16 ch.) + Keeletee (13 ch.) syllabus seed
-- `lib/services/` — service interfaces (TTS / STT / LLM / Sync) with M0-level implementations or stubs
-- `lib/features/dashboard/` — placeholder dashboard: Trail progress strip, streak card, theme switcher, sync-test button
+Builds are produced by CI and published to git branches:
+`dist-macos` → `Rada.dmg` · `dist-android` → `rada.apk`.
 
-## Setup (on your Mac)
+- macOS: open the .dmg, drag to Applications. Unsigned → first launch: right-click → Open.
+- Android: sideload the .apk (allow unknown sources).
 
-1. Install Flutter (stable): https://docs.flutter.dev/get-started/install/macos — enable macOS desktop + Android toolchains (`flutter doctor`).
-2. Inside this folder, generate the platform folders (they are deliberately not committed):
+## In-app setup (no build-time config)
 
-   ```bash
-   cp .env.example .env          # required even if left empty (bundled as asset)
-   flutter create --platforms=android,macos --project-name rada .
-   flutter pub get
-   dart run build_runner build   # generates db.g.dart for Drift
-   ```
+Everything the app needs is entered in-app — there is no `.env`:
 
-3. Run it:
+- **Settings (gear)** → Supabase URL + publishable key for sync (create a free project, run `supabase/schema.sql` in its SQL editor first). Theme, daily goal, app language, exam date.
+- **Speech studio → voice settings** → Anthropic API key + model (cloud) or LM Studio URL (local), Whisper server URL, TTS voice.
 
-   ```bash
-   flutter run -d macos     # or -d <android-device-id>
-   ```
+### Whisper server (pronunciation / voice input)
 
-## M0 acceptance: sync a dummy record Mac ↔ phone
+```bash
+brew install whisper-cpp
+whisper-server -m <model.bin> --port 8090 --language et
+```
 
-1. Create a free project at https://supabase.com.
-2. In the SQL editor, run `supabase/schema.sql`.
-3. Copy `.env.example` → `.env`, fill `SUPABASE_URL` and `SUPABASE_ANON_KEY`.
-4. Launch on both devices, press **"Sync test"** on the dashboard — a `sync_probe` row written on one device should appear on the other.
+Start with the multilingual `large-v3-turbo` model; TalTech's Estonian fine-tune (`TalTechNLP/whisper-large-et`) is the upgrade once converted to GGML.
 
-## Next (M1)
+## Developing locally
 
-Webview course embed + chapter checklist, real Trail home screen, quest card, streaks from activity_log, exam countdown. See spec §11.
+```bash
+flutter pub get
+dart run build_runner build --delete-conflicting-outputs
+flutter run -d macos   # or an Android device
+```
+
+Native folders (`android/`, `macos/`) are committed. Android release builds are signed with the committed dev keystore (`android/app/rada-dev.jks`, see `android/key.properties`) so updates install over previous versions — this is a personal app; never reuse that key for anything distributed.
+
+## CI
+
+- Every push: `flutter analyze` + tests (Linux). Log published to `ci-logs` branch.
+- Push to `main` or manual dispatch: macOS .dmg and Android .apk → `dist-*` branches.

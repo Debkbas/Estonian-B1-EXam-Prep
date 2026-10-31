@@ -20,6 +20,7 @@ class TrailScreen extends StatefulWidget {
   final RadaTokens tokens;
   final bool syncConfigured;
   final ValueChanged<RadaTokens> onThemeChanged;
+  final ValueChanged<bool> onSyncConfigured;
 
   const TrailScreen({
     super.key,
@@ -27,6 +28,7 @@ class TrailScreen extends StatefulWidget {
     required this.tokens,
     required this.syncConfigured,
     required this.onThemeChanged,
+    required this.onSyncConfigured,
   });
 
   @override
@@ -47,7 +49,10 @@ class _TrailScreenState extends State<TrailScreen> {
   @override
   void initState() {
     super.initState();
-    _refresh();
+    _refresh().then((_) {
+      // B8: auto-sync on launch when configured (quiet; errors shown inline)
+      if (widget.syncConfigured) _syncNow();
+    });
   }
 
   Future<void> _refresh() async {
@@ -73,15 +78,18 @@ class _TrailScreenState extends State<TrailScreen> {
   }
 
   Future<void> _openCourse(Course course, {String? fragment}) async {
-    await Navigator.of(context).push(MaterialPageRoute(
+    // B7: webview returns elapsed seconds; we log here *before* refreshing
+    final seconds = await Navigator.of(context).push<int>(MaterialPageRoute(
       builder: (_) => CourseWebviewScreen(
-        repo: _repo,
         title: course.title,
         url: fragment == null ? course.baseUrl : '${course.baseUrl}$fragment',
-        courseSlug: course.slug,
       ),
     ));
-    _refresh();
+    if (seconds != null && seconds >= 45) {
+      await _repo.logActivity((seconds / 60).round().clamp(1, 600), 'course',
+          detail: {'course': course.slug});
+    }
+    await _refresh();
   }
 
   Future<void> _syncNow() async {
@@ -510,11 +518,16 @@ class _TrailScreenState extends State<TrailScreen> {
 
   Future<void> _pickExamDate() async {
     final now = DateTime.now();
+    // B5: no stale hard-coded default. Harno publishes next year's dates in
+    // January; until chosen, suggest ~6 months out.
+    final suggested = _plan?.examDate ?? now.add(const Duration(days: 180));
     final picked = await showDatePicker(
       context: context,
-      initialDate: _plan?.examDate ?? DateTime(2026, 11, 8),
+      initialDate: suggested.isBefore(now) ? now : suggested,
       firstDate: now,
       lastDate: now.add(const Duration(days: 900)),
+      helpText: _l.t('Official dates: harno.ee/eesti-keele-tasemeeksamid',
+          'Ametlikud kuupäevad: harno.ee/eesti-keele-tasemeeksamid'),
     );
     if (picked != null) {
       await _repo.setExamDate(picked);
@@ -524,6 +537,11 @@ class _TrailScreenState extends State<TrailScreen> {
 
   Future<void> _openSettings() async {
     final goalCtl = TextEditingController(text: '$_goal');
+    final sbUrlCtl = TextEditingController(
+        text: await _repo.getSetting('supabase_url') ?? '');
+    final sbKeyCtl = TextEditingController(
+        text: await _repo.getSetting('supabase_key') ?? '');
+    if (!mounted) return;
     await showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -533,7 +551,8 @@ class _TrailScreenState extends State<TrailScreen> {
             right: 16,
             top: 16,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 16),
-        child: Column(
+        child: SingleChildScrollView(
+          child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -584,6 +603,42 @@ class _TrailScreenState extends State<TrailScreen> {
                 border: const OutlineInputBorder(),
               ),
             ),
+            const SizedBox(height: 16),
+            Text(_l.t('Sync (Supabase)', 'Sünk (Supabase)'),
+                style: Theme.of(ctx).textTheme.titleSmall),
+            const SizedBox(height: 6),
+            TextField(
+              controller: sbUrlCtl,
+              decoration: const InputDecoration(
+                labelText: 'Supabase URL',
+                hintText: 'https://xxxx.supabase.co',
+                border: OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: sbKeyCtl,
+              obscureText: true,
+              decoration: InputDecoration(
+                labelText: _l.t('Publishable / anon key', 'Avalik võti'),
+                border: const OutlineInputBorder(),
+                isDense: true,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              widget.syncConfigured
+                  ? _l.t('Sync active', 'Sünk töötab')
+                  : _l.t(
+                      'Run supabase/schema.sql in your project, paste URL + key, save. Restart if changing existing values.',
+                      'Käivita supabase/schema.sql, kleebi URL ja võti, salvesta.'),
+              style: TextStyle(
+                  color: widget.syncConfigured
+                      ? widget.tokens.success
+                      : widget.tokens.textSecondary,
+                  fontSize: 12),
+            ),
             const SizedBox(height: 12),
             Row(
               children: [
@@ -593,8 +648,15 @@ class _TrailScreenState extends State<TrailScreen> {
                     if (v != null && v > 0) {
                       await _repo.setSetting('goal_minutes', '$v');
                     }
+                    await _repo.setSetting(
+                        'supabase_url', sbUrlCtl.text.trim());
+                    await _repo.setSetting(
+                        'supabase_key', sbKeyCtl.text.trim());
+                    final ok = await initSupabaseFromSettings(_repo);
+                    widget.onSyncConfigured(ok);
                     if (ctx.mounted) Navigator.pop(ctx);
-                    _refresh();
+                    await _refresh();
+                    if (ok) _syncNow();
                   },
                   child: Text(_l.short('Save', 'Salvesta')),
                 ),
@@ -609,6 +671,7 @@ class _TrailScreenState extends State<TrailScreen> {
               ],
             ),
           ],
+          ),
         ),
       ),
     );

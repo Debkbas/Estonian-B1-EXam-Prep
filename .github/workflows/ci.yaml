@@ -4,13 +4,13 @@ on:
   push:
     branches: [main]
   pull_request:
-  workflow_dispatch: # manual trigger for platform builds
+  workflow_dispatch:
 
 permissions:
-  contents: write # lets CI push logs to the ci-logs branch
+  contents: write # ci-logs / dist-* branches, and the one-time native bootstrap
 
 jobs:
-  # Cheap fast loop: every push (Linux runner, 1x minutes)
+  # ---------------------------------------------------------------- quality
   quality:
     runs-on: ubuntu-latest
     steps:
@@ -19,7 +19,6 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: cp .env.example .env
       - name: Run checks (captured)
         run: |
           set -o pipefail
@@ -33,63 +32,99 @@ jobs:
           echo "===== EXIT STATUS: $status" | tee -a ci.log
           echo "CI_STATUS=$status" >> "$GITHUB_ENV"
           exit $status
-      # Publish the log to a git branch so it is readable via plain `git fetch`
-      # (sandbox has github.com git access but no Actions API access).
       - name: Publish log to ci-logs branch
         if: always()
         run: |
           mkdir -p /tmp/cilogs
           cp ci.log /tmp/cilogs/quality.log || echo "no log" > /tmp/cilogs/quality.log
           echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA} status=${CI_STATUS:-unknown}" > /tmp/cilogs/STATUS
-          cd /tmp/cilogs
-          git init -q -b ci-logs
+          cd /tmp/cilogs && git init -q -b ci-logs
           git config user.name ci && git config user.email ci@local
           git add -A && git commit -qm "quality run ${GITHUB_RUN_NUMBER} (${GITHUB_SHA})"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-logs
 
-  # Installables published to dist-* branches (fetchable via plain git).
-  build-macos:
-    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
-    needs: quality
+  # ------------------------------------------- one-time native bootstrap (B10)
+  # Generates android/ + macos/ with all patches applied, plus a persistent
+  # Android dev keystore (B2), and commits them to main. No-op once present.
+  bootstrap-native:
     runs-on: macos-latest
+    outputs:
+      bootstrapped: ${{ steps.gen.outputs.bootstrapped }}
     steps:
       - uses: actions/checkout@v4
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
           cache: true
-      - run: cp .env.example .env
-      - run: flutter create --platforms=macos --project-name rada .
-      - name: Entitlements — network client + microphone
+      - id: gen
         run: |
+          if [ -d android ] && [ -d macos ] && [ -f android/rada-dev.jks ]; then
+            echo "native folders present — skipping"; echo "bootstrapped=false" >> "$GITHUB_OUTPUT"; exit 0
+          fi
+          flutter create --platforms=android,macos --project-name rada --org ee.rada .
+          # macOS: network + microphone
           for f in macos/Runner/DebugProfile.entitlements macos/Runner/Release.entitlements; do
             /usr/libexec/PlistBuddy -c "Add :com.apple.security.network.client bool true" "$f" 2>/dev/null || true
             /usr/libexec/PlistBuddy -c "Add :com.apple.security.device.audio-input bool true" "$f" 2>/dev/null || true
           done
           /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'Estonian speech practice recording'" macos/Runner/Info.plist 2>/dev/null || true
+          # Android: permissions + app label
+          sed -i '' 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\
+    <application#' android/app/src/main/AndroidManifest.xml
+          sed -i '' 's/android:label="rada"/android:label="Rada"/' android/app/src/main/AndroidManifest.xml
+          # Persistent dev keystore using Android debug-signing defaults so no
+          # Gradle changes are needed: CI copies it to ~/.android/debug.keystore.
+          keytool -genkeypair -v -keystore android/rada-dev.jks -storepass android -keypass android \
+            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
+            -dname "CN=Rada Dev, OU=Personal, O=Rada, L=Tallinn, C=EE"
+          # un-ignore and commit
+          sed -i '' '/^android\/$/d;/^macos\/$/d' .gitignore
+          git config user.name ci && git config user.email ci@local
+          git add -A android macos .gitignore
+          git commit -qm "chore: commit native projects + dev keystore (CI bootstrap)"
+          git push -q "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
+          echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
+
+  # ------------------------------------------------------------ build-macos
+  build-macos:
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    needs: [quality, bootstrap-native]
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main # pick up the bootstrap commit if it just happened
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
       - run: flutter build macos --release
       - name: Create DMG
         run: |
-          mkdir -p dmgroot && cp -R build/macos/Build/Products/Release/rada.app dmgroot/
+          mkdir -p dmgroot && cp -R build/macos/Build/Products/Release/*.app dmgroot/
           hdiutil create -volname Rada -srcfolder dmgroot -ov -format UDZO Rada.dmg
           ls -lh Rada.dmg
       - name: Publish to dist-macos branch
         run: |
           mkdir -p /tmp/dist && cp Rada.dmg /tmp/dist/
-          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA}" > /tmp/dist/STATUS
+          echo "run=${GITHUB_RUN_NUMBER} sha=$(git rev-parse HEAD)" > /tmp/dist/STATUS
           cd /tmp/dist && git init -q -b dist-macos
           git config user.name ci && git config user.email ci@local
           git add -A && git commit -qm "Rada.dmg run ${GITHUB_RUN_NUMBER}"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" dist-macos
 
+  # ---------------------------------------------------------- build-android
   build-android:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
-    needs: quality
+    needs: [quality, bootstrap-native]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -98,13 +133,11 @@ jobs:
         with:
           channel: stable
           cache: true
-      - run: cp .env.example .env
-      - run: flutter create --platforms=android --project-name rada .
-      - name: Android manifest — INTERNET + RECORD_AUDIO permissions
-        run: |
-          sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <application#' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
       - run: dart run build_runner build --delete-conflicting-outputs
+      - name: Persistent signing (B2) — committed dev keystore as debug keystore
+        run: |
+          mkdir -p ~/.android && cp android/rada-dev.jks ~/.android/debug.keystore
       - name: Patch flutter_inappwebview proguard ref (AGP compat)
         run: |
           for f in $(find ~/.pub-cache -path "*flutter_inappwebview_android*" -name "build.gradle"); do
@@ -118,7 +151,7 @@ jobs:
         if: always()
         run: |
           mkdir -p /tmp/blog && cp android-build.log /tmp/blog/android.log 2>/dev/null || echo "no log" > /tmp/blog/android.log
-          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA} outcome=${{ job.status }}" > /tmp/blog/STATUS
+          echo "run=${GITHUB_RUN_NUMBER} sha=$(git rev-parse HEAD) outcome=${{ job.status }}" > /tmp/blog/STATUS
           cd /tmp/blog && git init -q -b ci-logs-android
           git config user.name ci && git config user.email ci@local
           git add -A && git commit -qm "android build log run ${GITHUB_RUN_NUMBER}"
@@ -126,7 +159,7 @@ jobs:
       - name: Publish to dist-android branch
         run: |
           mkdir -p /tmp/dist && cp build/app/outputs/flutter-apk/app-release.apk /tmp/dist/rada.apk
-          echo "run=${GITHUB_RUN_NUMBER} sha=${GITHUB_SHA}" > /tmp/dist/STATUS
+          echo "run=${GITHUB_RUN_NUMBER} sha=$(git rev-parse HEAD)" > /tmp/dist/STATUS
           cd /tmp/dist && git init -q -b dist-android
           git config user.name ci && git config user.email ci@local
           git add -A && git commit -qm "rada.apk run ${GITHUB_RUN_NUMBER}"

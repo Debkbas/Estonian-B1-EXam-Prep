@@ -33,8 +33,9 @@ class SpeechConfig {
         lmstudioModel:
             await repo.getSetting('lmstudio_model') ?? 'local-model',
         anthropicKey: await repo.getSetting('anthropic_key') ?? '',
+        // B3: 4-5 models are retired; current family is 5.5
         anthropicModel:
-            await repo.getSetting('anthropic_model') ?? 'claude-sonnet-4-5',
+            await repo.getSetting('anthropic_model') ?? 'claude-sonnet-5-5',
         ttsVoice: await repo.getSetting('tts_voice') ?? 'mari',
       );
 

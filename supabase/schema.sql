@@ -34,6 +34,54 @@ create table if not exists activity_log (
   deleted boolean not null default false
 );
 
+create table if not exists mock_exams (
+  id text primary key,
+  started_at timestamptz not null,
+  sections_json text not null,
+  total_pct double precision,
+  notes text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  device_id text not null default 'unknown',
+  deleted boolean not null default false
+);
+
+create table if not exists answer_keys (
+  id text primary key,
+  exam_asset_id text not null,
+  answers_json text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  device_id text not null default 'unknown',
+  deleted boolean not null default false
+);
+
+create table if not exists exam_plans (
+  id text primary key,
+  exam_date timestamptz not null,
+  registration_deadline timestamptz not null,
+  consultation_date timestamptz,
+  registered boolean not null default false,
+  location text,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  device_id text not null default 'unknown',
+  deleted boolean not null default false
+);
+
+alter table mock_exams enable row level security;
+alter table answer_keys enable row level security;
+alter table exam_plans enable row level security;
+do $$ begin
+  create policy "personal_all" on mock_exams for all using (true) with check (true);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create policy "personal_all" on answer_keys for all using (true) with check (true);
+exception when duplicate_object then null; end $$;
+do $$ begin
+  create policy "personal_all" on exam_plans for all using (true) with check (true);
+exception when duplicate_object then null; end $$;
+
 -- RLS: permissive for now (personal project, anon key kept private).
 -- Tighten to authenticated-only when auth is wired.
 alter table sync_probe enable row level security;
