@@ -43,56 +43,18 @@ jobs:
           git add -A && git commit -qm "quality run ${GITHUB_RUN_NUMBER} (${GITHUB_SHA})"
           git push -qf "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" ci-logs
 
-  # ------------------------------------------- one-time native bootstrap (B10)
-  # Generates android/ + macos/ with all patches applied, plus a persistent
-  # Android dev keystore (B2), and commits them to main. No-op once present.
-  bootstrap-native:
-    runs-on: macos-latest
-    outputs:
-      bootstrapped: ${{ steps.gen.outputs.bootstrapped }}
-    steps:
-      - uses: actions/checkout@v4
-      - uses: subosito/flutter-action@v2
-        with:
-          channel: stable
-          cache: true
-      - id: gen
-        run: |
-          if [ -d android ] && [ -d macos ] && [ -f android/rada-dev.jks ]; then
-            echo "native folders present — skipping"; echo "bootstrapped=false" >> "$GITHUB_OUTPUT"; exit 0
-          fi
-          flutter create --platforms=android,macos --project-name rada --org ee.rada .
-          # macOS: network + microphone
-          for f in macos/Runner/DebugProfile.entitlements macos/Runner/Release.entitlements; do
-            /usr/libexec/PlistBuddy -c "Add :com.apple.security.network.client bool true" "$f" 2>/dev/null || true
-            /usr/libexec/PlistBuddy -c "Add :com.apple.security.device.audio-input bool true" "$f" 2>/dev/null || true
-          done
-          /usr/libexec/PlistBuddy -c "Add :NSMicrophoneUsageDescription string 'Estonian speech practice recording'" macos/Runner/Info.plist 2>/dev/null || true
-          # Android: permissions + app label
-          perl -0pi -e 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <uses-permission android:name="android.permission.RECORD_AUDIO"/>\n    <application#' android/app/src/main/AndroidManifest.xml
-          perl -pi -e 's/android:label="rada"/android:label="Rada"/' android/app/src/main/AndroidManifest.xml
-          # Persistent dev keystore using Android debug-signing defaults so no
-          # Gradle changes are needed: CI copies it to ~/.android/debug.keystore.
-          keytool -genkeypair -v -keystore android/rada-dev.jks -storepass android -keypass android \
-            -alias androiddebugkey -keyalg RSA -keysize 2048 -validity 10000 \
-            -dname "CN=Rada Dev, OU=Personal, O=Rada, L=Tallinn, C=EE"
-          # un-ignore and commit
-          sed -i '' '/^android\/$/d;/^macos\/$/d' .gitignore
-          git config user.name ci && git config user.email ci@local
-          git add -A android macos .gitignore
-          git commit -qm "chore: commit native projects + dev keystore (CI bootstrap)"
-          git push -q "https://x-access-token:${{ github.token }}@github.com/${GITHUB_REPOSITORY}.git" HEAD:main
-          echo "bootstrapped=true" >> "$GITHUB_OUTPUT"
+  # Native projects (android/, macos/) are committed — generated once by a CI
+  # bootstrap on 2026-11-01 with permissions/entitlements applied. The Android
+  # dev keystore android/rada-dev.jks (debug-signing defaults) is committed so
+  # every build carries the same signature and updates install in place (B2).
 
   # ------------------------------------------------------------ build-macos
   build-macos:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
-    needs: [quality, bootstrap-native]
+    needs: quality
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main # pick up the bootstrap commit if it just happened
       - uses: subosito/flutter-action@v2
         with:
           channel: stable
@@ -117,12 +79,10 @@ jobs:
   # ---------------------------------------------------------- build-android
   build-android:
     if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
-    needs: [quality, bootstrap-native]
+    needs: quality
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: main
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

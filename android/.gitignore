@@ -12,3 +12,6 @@ GeneratedPluginRegistrant.java
 key.properties
 **/*.keystore
 **/*.jks
+
+# Rada: personal dev keystore, intentionally committed (debug-signing defaults; never reuse)
+!rada-dev.jks
